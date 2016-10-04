@@ -331,6 +331,16 @@ public class EnemyVitals
 
 
 
+public class UB_AdData
+{
+	public AdPlacementDetails Details { get; set; }
+
+	//ctor
+	public UB_AdData(){}
+}
+
+
+
 public enum PromotionType { Other, Active, Promoted, Upcomming }
 public class UB_SaleData
 {

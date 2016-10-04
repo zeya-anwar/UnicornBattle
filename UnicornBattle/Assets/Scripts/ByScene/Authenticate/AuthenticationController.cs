@@ -35,14 +35,14 @@ public class AuthenticationController : MonoBehaviour {
 	// Use this for initialization
 	void Start () 
 	{
-        if(PlayerPrefs.HasKey("TitleId"))
-        {
-			PlayFabSettings.TitleId = PlayerPrefs.GetString("TitleId");
-        }
-        else
-        {
-			PlayFabSettings.TitleId = GlobalStrings.UB_TITLE_ID;
-        }
+//        if(PlayerPrefs.HasKey("TitleId"))
+//        {
+//			PlayFabSettings.TitleId = PlayerPrefs.GetString("TitleId");
+//        }
+//        else
+//        {
+//			PlayFabSettings.TitleId = GlobalStrings.UB_TITLE_ID;
+//}
         
 		if(this.useDevLogin == true)
 		{

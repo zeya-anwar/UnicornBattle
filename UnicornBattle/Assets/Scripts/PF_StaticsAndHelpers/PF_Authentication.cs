@@ -121,7 +121,7 @@ public class PF_Authentication {
 					Debug.Log("Using Android Device ID: " + android_id);
 					LoginWithAndroidDeviceIDRequest request = new LoginWithAndroidDeviceIDRequest();
 					request.AndroidDeviceId = android_id;
-					request.TitleId = PlayFabSettings.TitleId;
+					request.TitleId = GlobalStrings.UB_TITLE_ID;
 					request.CreateAccount = createAcount;
 					
 					DialogCanvasController.RequestLoadingPrompt(PlayFabAPIMethods.GenericLogin);
@@ -144,7 +144,7 @@ public class PF_Authentication {
 					Debug.Log("Using IOS Device ID: " + ios_id);
 					LoginWithIOSDeviceIDRequest request = new LoginWithIOSDeviceIDRequest();
 					request.DeviceId = ios_id;
-					request.TitleId = PlayFabSettings.TitleId;
+					request.TitleId = GlobalStrings.UB_TITLE_ID;
 					request.CreateAccount = createAcount;
 
 					DialogCanvasController.RequestLoadingPrompt(PlayFabAPIMethods.GenericLogin);
@@ -167,7 +167,7 @@ public class PF_Authentication {
 				Debug.Log("Using custom device ID: " + custom_id);
 				LoginWithCustomIDRequest request = new LoginWithCustomIDRequest();
 				request.CustomId = custom_id;
-				request.TitleId = PlayFabSettings.TitleId;
+				request.TitleId = GlobalStrings.UB_TITLE_ID;
 				request.CreateAccount = createAcount;
 				
 				DialogCanvasController.RequestLoadingPrompt(PlayFabAPIMethods.GenericLogin);
