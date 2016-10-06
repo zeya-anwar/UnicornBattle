@@ -231,7 +231,11 @@ public class ItemViewerController : MonoBehaviour {
 	
 	public void CloseViewer()
 	{
+		PF_PlayerData.GetUserInventory();
+		PF_PlayerData.GetCharacterInventory(PF_PlayerData.activeCharacter.characterDetails.CharacterId);
+
 		this.gameObject.SetActive(false);
+
 	}
 #endregion
 	
@@ -275,39 +279,72 @@ public class ItemViewerController : MonoBehaviour {
 		{
 			string awardIcon = "Default";
 			CatalogItem catItem = PF_GameData.catalogItems.Find( (i) => {  return i.ItemId == award.ItemId; } );
-			Dictionary<string, string> kvps = PlayFab.Json.JsonWrapper.DeserializeObject<Dictionary<string, string>>(catItem.CustomData);
-			kvps.TryGetValue("icon", out awardIcon);	
-			
-			items.Add(new ContainerResultItem()
-			{ 
-				displayIcon = GameController.Instance.iconManager.GetIconById(awardIcon),	
-				displayName = award.DisplayName
-			});	
+			if(catItem != null)
+			{
+				Dictionary<string, string> kvps = PlayFab.Json.JsonWrapper.DeserializeObject<Dictionary<string, string>>(catItem.CustomData);
+				kvps.TryGetValue("icon", out awardIcon);	
+				
+				items.Add(new ContainerResultItem()
+				{ 
+					displayIcon = GameController.Instance.iconManager.GetIconById(awardIcon),	
+					displayName = "  "+ award.DisplayName
+				});	
+			}
 		}
 		
 		if(result.VirtualCurrency != null)
 		{
 			foreach(var award in result.VirtualCurrency)
 			{
+				string friendlyName = string.Empty;
+					if(award.Key == "AU")
+					{
+						friendlyName = "Gold";
+
+					} else if(award.Key == "HT")
+					{
+						friendlyName = "Lives";
+					}
+					else if(award.Key == "GM")
+					{
+						friendlyName = "Gems";
+					}
+
 				items.Add(new ContainerResultItem(){ 
 					displayIcon = GameController.Instance.iconManager.GetIconById(award.Key),
-					displayName = string.Format("{1} Award: {0}", award.Value, award.Key ) 
+					displayName = string.Format("   {0} {1}", award.Value, friendlyName) 
 				});
 			}
 		}
 		else
 		{
-			CatalogItem catRef = PF_GameData.catalogItems.Find( (i) => {return i.ItemId == this.selectedItem.ItemId; });
-			if(catRef.Container.VirtualCurrencyContents.Count > 0)
-			{
-				foreach(var vc in catRef.Container.VirtualCurrencyContents)
-				{
-					items.Add(new ContainerResultItem(){ 
-						displayIcon = GameController.Instance.iconManager.GetIconById(vc.Key),
-						displayName = string.Format("{1} Award: {0}", vc.Value, vc.Key ) 
-					});
-				}
-			}
+		//TODO find out if this is OK to remove:
+//			CatalogItem catRef = PF_GameData.catalogItems.Find( (i) => {return i.ItemId == result. this.selectedItem.ItemId; });
+//			if(catRef != null && catRef.Container.VirtualCurrencyContents.Count > 0)
+//			{
+//				
+//				foreach(var vc in catRef.Container.VirtualCurrencyContents)
+//				{
+//					string friendlyName = string.Empty;
+//					if(vc.Key == "AU")
+//					{
+//						friendlyName = "Gold";
+//
+//					} else if(vc.Key == "HT")
+//					{
+//						friendlyName = "Lives";
+//					}
+//					else if(vc.Key == "GM")
+//					{
+//						friendlyName = "Gems";
+//					}
+//
+//					items.Add(new ContainerResultItem(){ 
+//						displayIcon = GameController.Instance.iconManager.GetIconById(vc.Key),
+//						displayName = string.Format("   {1} Award: {0}", vc.Value, friendlyName ) 
+//					});
+//				}
+//			}
 		}
 			
 		this.CurrentIcon.overrideSprite = GameController.Instance.iconManager.GetIconById(currentIconId+"_Open");	

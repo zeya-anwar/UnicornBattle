@@ -8,7 +8,6 @@ public class CurrentCharacterController : MonoBehaviour {
 	public Text characterLevel;
 	public Image displayImage;
 	public FillBarController expBar;
-	public Text livesCount;
 	
 	public Text hp;
 	public Text dp;
@@ -43,22 +42,7 @@ public class CurrentCharacterController : MonoBehaviour {
 				this.expBar.currentValue = PF_PlayerData.activeCharacter.characterData.ExpThisLevel;
 				
 			}
-			
-			if(PF_PlayerData.characterVirtualCurrency.Count > 0)
-			{
-				if(PF_PlayerData.characterVirtualCurrency.ContainsKey("HT"))
-				{
-					this.livesCount.text = "" + PF_PlayerData.characterVirtualCurrency["HT"];
-/*					if(PF_PlayerData.characterVirtualCurrency["HT"] < 3)
-					{
-						TweenScale.Tween(this.heartArt.gameObject, .333f, new Vector3(1,1,1), new Vector3(1.1f,1.1f,1.1f), TweenMain.Style.PingPong, TweenMain.Method.EaseIn, null);
-					}
-					else
-					{
-						TweenScale.Tween(this.heartArt.gameObject, .5f, new Vector3(1,1,1), new Vector3(1.05f,1.05f,1.05f), TweenMain.Style.PingPong, TweenMain.Method.EaseIn, null);
-					}*/
-				}
-			}
+		
 		}
 	
 

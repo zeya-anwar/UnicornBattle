@@ -545,6 +545,8 @@ public static class PF_PlayerData {
 			
 			if(PF_GameData.catalogItems.Count > 0)
 			{
+				//if gifts were detected put up the item viewer with the gift items.
+				
 				foreach(var item in characterInventory)
 				{	
 					if(!characterInvByCategory.ContainsKey(item.ItemId))
@@ -554,6 +556,11 @@ public static class PF_PlayerData {
 						
 						try
 						{
+							if(item.ItemClass == "Gift")
+							{
+								//
+							}
+							
 							if(catalog != null)
 							{
 								string customIcon = "Defaut";

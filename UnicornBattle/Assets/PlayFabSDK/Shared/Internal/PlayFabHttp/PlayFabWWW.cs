@@ -25,6 +25,8 @@ namespace PlayFab.Internal
         public void MakeApiCall(CallRequestContainer reqContainer)
         {
             //Set headers
+         
+
             var headers = new Dictionary<string, string> { { "Content-Type", "application/json" } };
             if (reqContainer.AuthKey == AuthType.DevSecretKey)
             {
@@ -78,6 +80,8 @@ namespace PlayFab.Internal
                     {
                         // We have a good response from the server
                         reqContainer.JsonResponse = JsonWrapper.SerializeObject(httpResult.data, PlayFabUtil.ApiSerializerStrategy);
+
+
                         reqContainer.DeserializeResultJson();
                         reqContainer.ApiResult.Request = reqContainer.ApiRequest;
                         reqContainer.ApiResult.CustomData = reqContainer.CustomData;

@@ -7,8 +7,6 @@ using PlayFab.SharedModels;
 
 public class PF_Advertising {
 
-	
-
 	public static void  GetAdPlacements(GetAdPlacementsRequest request, Action<GetAdPlacementsResult> resultCallback, Action<PlayFab.PlayFabError> errorCallback, object customData = null)
 	{
 		if (!PlayFabHttp.IsClientLoggedIn()) throw new Exception("Must be logged in to call this method");
@@ -22,7 +20,35 @@ public class PF_Advertising {
 
 		PlayFabHttp.MakeApiCall<ReportAdActivityResponse>("/Client/ReportAdActivity", request, AuthType.LoginSession, resultCallback, errorCallback, customData);
 	}
+
+	public static void  RewardAdActivity(RewardAdActivityRequest request, Action<RewardAdActivityResponse> resultCallback, Action<PlayFab.PlayFabError> errorCallback, object customData = null)
+	{
+		if (!PlayFabHttp.IsClientLoggedIn()) throw new Exception("Must be logged in to call this method");
+
+		PlayFabHttp.MakeApiCall<RewardAdActivityResponse>("/Client/RewardAdActivity", request, AuthType.LoginSession, resultCallback, errorCallback, customData);
+	}
 }
+
+public class ReportAdActivityRequest : PlayFabRequestCommon
+{
+    public string PlacementId { get; set; }
+
+    public string RewardId { get; set; }
+
+    public AdActivity Activity { get; set; }
+}
+
+public enum AdActivity
+{
+    Opened,
+    Closed,
+    Start,
+    End
+}
+
+public class ReportAdActivityResponse : PlayFabResultCommon
+{}
+
 
 public class GetAdPlacementsRequest : PlayFabRequestCommon
 {
@@ -52,19 +78,26 @@ public class AdPlacementDetails
     public string RewardDescription { get; set; }
     public string RewardAssetUrl { get; set; }
     public int? PlacementViewsRemaining { get; set; }
+    public int? PlacementViewsResetMinutes { get; set; }
 }
 
-public class ReportAdActivityRequest : PlayFabRequestCommon
+public class RewardAdActivityRequest : PlayFabRequestCommon
 {
     public string PlacementId { get; set; }
     public string RewardId { get; set; }
 }
 
-public class ReportAdActivityResponse : PlayFabResultCommon
+public class RewardAdActivityResponse : PlayFabResultCommon
 {
     public string AdActivityEventId { get; set; }
     public List<string> DebugResults { get; set; }
     public AdRewardResults RewardResults { get; set; }
+	public string RewardDescription { get; set; }
+    public string RewardAssetUrl { get; set; }
+	public int? PlacementViewsRemaining { get; set; }
+    public int? PlacementViewsResetMinutes { get; set; }
+	public string PlacementName { get; set; }
+	public string PlacementId { get; set; }
 }
 
 public class AdRewardResults

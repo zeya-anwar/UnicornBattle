@@ -188,7 +188,7 @@ public class DialogCanvasController : Singleton<DialogCanvasController> {
 	}
 
 
-	public static void RequestInventoryPrompt(Action<string> callback = null, InventoryFilters filter = InventoryFilters.AllItems,  bool enableTransUi = true, FloatingInventoryController.InventoryMode displayMode = FloatingInventoryController.InventoryMode.Character )
+	public static void RequestInventoryPrompt(Action<string> callback = null, InventoryFilters filter = InventoryFilters.AllItems,  bool enableTransUi = true, FloatingInventoryController.InventoryMode displayMode = FloatingInventoryController.InventoryMode.Player)
 	{
 		if(RaiseInventoryPromptRequest != null)
 		{

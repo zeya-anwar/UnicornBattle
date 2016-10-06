@@ -347,7 +347,8 @@ public class CharacterPicker : MonoBehaviour {
 	{
 		PF_PlayerData.activeCharacter = this.selectedSlot.saved;
 		PF_PlayerData.activeCharacter.SetMaxVitals();
-		
+		PF_PlayerData.GetCharacterInventory(PF_PlayerData.activeCharacter.characterDetails.CharacterId);
+
 		SceneController.Instance.RequestSceneChange(SceneController.GameScenes.Profile, 0f);
 	}
 	#endregion

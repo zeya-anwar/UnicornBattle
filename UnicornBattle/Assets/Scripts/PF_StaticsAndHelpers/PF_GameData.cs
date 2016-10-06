@@ -127,8 +127,8 @@ public static class PF_GameData
 		{
 			Offers = PlayFab.Json.JsonWrapper.DeserializeObject<Dictionary<string, UB_OfferData>>(result.Data["Offers"], PlayFab.Internal.PlayFabUtil.ApiSerializerStrategy);
 			Debug.Log ("Offer Data Retrieved");
-
 		}
+
 
 		if(result.Data.ContainsKey("CommunityWebsite"))
 		{
@@ -373,6 +373,7 @@ public static class PF_GameData
 		
 		if(characterId != null)
 		{
+			Debug.Log("Unpacking: " +containerId + " to: " + characterId);
 			request.CharacterId = characterId;
 		}
 		

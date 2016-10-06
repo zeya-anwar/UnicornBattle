@@ -33,6 +33,9 @@ public class PromotionController : MonoBehaviour
     public enum PromotionFilter { All = 0, Sales = 1, Events = 2, News = 3, RewardAd = 4 }
     //public PromotionFilter activeFilter = PromotionFilter.All;
     //public Text titleText;
+    private Sprite _blankSprite;
+    private float _watchCD = 0.5f;
+    private float _watchLastClickedAt = 0;
 
     // Use this for initialization
     void Start()
@@ -40,7 +43,18 @@ public class PromotionController : MonoBehaviour
         // Set up the default display
         SetAdSlotCount(1);
         SelectBanner(UB_PromoDisplay.EMPTY_PROMO, 0);
+		_blankSprite = PromoBanner.sprite;
     }
+
+    #if UNITY_EDITOR
+    void OnGUI()
+    {
+    	if(GUILayout.Button("TEST", GUILayout.MinWidth(200), GUILayout.MinHeight(50)))
+    	{
+			PF_Advertising.RewardAdActivity(new RewardAdActivityRequest(){ PlacementId = "3EB87825435183BD", RewardId = "73524B821DE4F555" }, SupersonicEvents.OnReportAdActivitySuccess, PF_Bridge.PlayFabErrorCallback);
+    	}
+    }
+    #endif
 
     void OnEnable()
     {
@@ -60,6 +74,38 @@ public class PromotionController : MonoBehaviour
 	#region ****** PLAYFAB CALLBACKS ******
 	public void CheckForPlayFabPlacement(string placement = null)
 	{
+		Action<PlayFab.PlayFabError> errorCb = (PlayFab.PlayFabError error) => {
+
+			if(error.GenerateErrorReport().Contains("AllAdPlacementViewsAlreadyConsumed"))
+			{
+				//PF_Bridge.RaiseCallbackError(string.Format("No more rewared ads can be viewed at this time. Check back in {0} minutes",  ), PlayFabAPIMethods.Generic, MessageDisplayStyle.error);
+				var adpromo = promos.Find((p) => { return p.linkedAd != null; });
+
+				if(adpromo != null)
+	    		{
+					Debug.Log("AdPromo was not null... removing: " + adpromo.assets.PromoId ?? "Unknown");
+					promos.Remove(adpromo);
+					SetAdSlotCount(promos.Count);
+		            SelectBanner(promos[0], 0);
+					Debug.Log("Promo Count: " + promos.Count);
+	    		}
+	    		else
+	    		{
+					Debug.Log("AdPromo not in rotation.");
+	    		}
+			}
+			else
+			{
+				PF_Bridge.RaiseCallbackError(error.GenerateErrorReport(), PlayFabAPIMethods.Generic, MessageDisplayStyle.error);
+			}
+			
+			//
+
+		};
+
+		SupersonicEvents.queuedAd = null;
+
+
 		if(placement != null)
 		{
 			PF_Advertising.GetAdPlacements(new GetAdPlacementsRequest(){ Identifier = new NameIdentifier(){ Name = placement }, AppId = SupersonicEvents.appKey }, OnCheckForPlayFabPlacementSuccess, PF_Bridge.PlayFabErrorCallback); 
@@ -79,12 +125,25 @@ public class PromotionController : MonoBehaviour
 		if((result.AdPlacements != null && result.AdPlacements.Length > 0) && (result.AdPlacements[0].PlacementViewsRemaining == null || result.AdPlacements[0].PlacementViewsRemaining > 0))
 		{
 			var adpromo = promos.Find((p) => { return p.linkedAd != null && p.assets.PromoId == result.AdPlacements[0].PlacementId; });
+		
 
 			if(adpromo == null)
     		{
 				Debug.Log("AdPromo was null... adding: " + result.AdPlacements[0].RewardName);
 				AddAdPromo(result.AdPlacements[0]);
+				//SelectBanner(promos[0], 0);
 			}
+			else
+			{
+				adpromo.linkedAd.Details.PlacementViewsRemaining = result.AdPlacements[0].PlacementViewsRemaining;
+			}
+
+			if(activePromo.assets.PromoId == result.AdPlacements[0].PlacementId)
+			{
+				var qtyString = string.Format("{0}", result.AdPlacements[0].PlacementViewsRemaining == null ?  "UNLIMITED rewarded ads." : result.AdPlacements[0].PlacementViewsRemaining +  " more rewarded ads.");
+				selectedDesc.text = result.AdPlacements[0].RewardDescription  + " You may watch " + qtyString;
+			}
+
 		}
 		else
 		{
@@ -107,19 +166,33 @@ public class PromotionController : MonoBehaviour
 	#endregion
 
 
-	void EvaluateAdState(ReportAdActivityResponse result = null)
+	void EvaluateAdState(RewardAdActivityResponse result = null)
     {
-    	if(result != null)
-    	{
-    		//THROW UP THE YOU JUST GOT details!
-
-    		// UPDATE THE ADS
-    	}
-    	else
-    	{
+//    	if(result == null)
+//    	{
 			Debug.Log("EvaluateAdState Called.");
 			CheckForPlayFabPlacement();
-		}
+//		}
+//		else
+//		{
+//			var adpromo = promos.Find((p) => { return p.linkedAd != null && p.assets.PromoId == result.PlacementId; });
+//
+//			if(adpromo == null)
+//    		{
+//				Debug.Log("AdPromo was null... Checking for available ads...: ");
+//				CheckForPlayFabPlacement();
+//				//SelectBanner(promos[0], 0);
+//			}
+//			else
+//			{
+//				adpromo.linkedAd.Details.PlacementViewsRemaining = result.PlacementViewsRemaining;
+//			}
+//
+//			if(activePromo.assets.PromoId == result.PlacementId)
+//			{
+//				selectedDesc.text = result.RewardDescription  + " You may watch " + result.PlacementViewsRemaining ?? "UNLIMITED" + " more rewarded ads.";;
+//			}
+//		}
     }
 
 
@@ -254,10 +327,18 @@ public class PromotionController : MonoBehaviour
 
     public void WatchAd()
     {
-		if( activePromo != null && activePromo.linkedAd != null)
+    	
+		if( activePromo != null && activePromo.linkedAd != null && SupersonicEvents.rewardedVideoAvailability)
 		{
-			
-    		SupersonicEvents.ShowRewardedVideo(activePromo.linkedAd.Details);
+			if(Time.time > _watchLastClickedAt + _watchCD)
+			{
+				_watchLastClickedAt = Time.time;
+    			SupersonicEvents.ShowRewardedVideo(activePromo.linkedAd.Details);
+    		}
+    	}
+    	else
+    	{
+    		PF_Bridge.RaiseCallbackError("Rewarded ad is unavailable at this time. Please try again later.", PlayFabAPIMethods.Generic, MessageDisplayStyle.error);
     	}
     }
 
@@ -284,7 +365,8 @@ public class PromotionController : MonoBehaviour
         }
 		else if(activePromo.linkedAd != null)  // Ad Type
         {
-			selectedDesc.text = activePromo.linkedAd.Details.RewardDescription;
+			var qtyString = string.Format("{0}", activePromo.linkedAd.Details.PlacementViewsRemaining == null ?  "UNLIMITED rewarded ads." : activePromo.linkedAd.Details.PlacementViewsRemaining +  " more rewarded ads.");
+			selectedDesc.text = activePromo.linkedAd.Details.RewardDescription +" You may watch " + qtyString;
             selectedTitle.text = activePromo.linkedAd.Details.RewardName;
         }
         else
@@ -294,9 +376,8 @@ public class PromotionController : MonoBehaviour
         }
 
         if (activePromo.assets.Banner != null)
-            PromoBanner.sprite = Sprite.Create(activePromo.assets.Banner, new Rect(0, 0, activePromo.assets.Banner.width, activePromo.assets.Banner.height), new Vector2(0.5f, 0.5f));
-        else
-            PromoBanner.sprite = null;
+            PromoBanner.overrideSprite = Sprite.Create(activePromo.assets.Banner, new Rect(0, 0, activePromo.assets.Banner.width, activePromo.assets.Banner.height), new Vector2(0.5f, 0.5f));
+
     }
 
 
@@ -312,7 +393,7 @@ public class PromotionController : MonoBehaviour
 		promos.Add(promo);
 
 		SetAdSlotCount(promos.Count);
-        SelectBanner(promos[0], 0);
+		SelectBanner(promo, promos.Count-1);
 
     }
 

@@ -15,7 +15,7 @@ public class SupersonicEvents : MonoBehaviour
 
 	public static bool trackNetworkState = true;
 
-	public static event Action<ReportAdActivityResponse> OnAdRewarded;
+	public static event Action<RewardAdActivityResponse> OnAdRewarded;
 	public static AdPlacementDetails queuedAd;
 
 
@@ -102,19 +102,102 @@ public class SupersonicEvents : MonoBehaviour
 	#region ****** PLAYFAB CALLBACKS ******
 	public static void RouteActivityToPlayFab(string placement, string reward)
 	{
-		PF_Advertising.ReportAdActivity(new ReportAdActivityRequest(){ PlacementId = placement, RewardId=reward }, OnReportAdActivitySuccess, PF_Bridge.PlayFabErrorCallback); 
+		PF_Advertising.RewardAdActivity(new RewardAdActivityRequest(){ PlacementId = placement, RewardId=reward }, OnReportAdActivitySuccess, PF_Bridge.PlayFabErrorCallback); 
 	}
 
-	public static void OnReportAdActivitySuccess(ReportAdActivityResponse result)
+	public static void OnReportAdActivitySuccess(RewardAdActivityResponse result)
 	{
 		Debug.Log("OnReportAdActivitySuccess!");
 		Debug.Log(string.Format("Retrieved {0} items and {1} VCs.", result.RewardResults.GrantedItems.Count, result.RewardResults.GrantedVirtualCurrencies.Count));
 
+        bool gotItems = false;
+        bool gotVC = false;
+        bool gotStats = false;
+
+		string output = "Congratulations! ";
+		List<string> itemGifts = new List<string>();
+
+        if(result.RewardResults.GrantedItems != null && result.RewardResults.GrantedItems.Count > 0)
+        {
+			gotItems = true;
+			output += "You received: " + result.RewardResults.GrantedItems.Count + " new items";
+
+			foreach(var item in result.RewardResults.GrantedItems)
+			{
+				itemGifts.Add(item.ItemId);
+			}
+        }
+
+
+        if(result.RewardResults.GrantedVirtualCurrencies != null && result.RewardResults.GrantedVirtualCurrencies.Count > 0)
+        {
+            gotVC = true;
+
+            var count = 0;
+			foreach(var grant in result.RewardResults.GrantedVirtualCurrencies)
+			{
+				if( gotItems || count > 0)
+				{
+					output += "; ";
+				}
+				else
+				{
+					output += "You received: ";
+				}
+
+				output += string.Format("{1}({0})", grant.Key, grant.Value);
+
+				count++;
+			}
+
+			output += " in Virtual Currencies";
+
+        }
+
+        if(result.RewardResults.IncrementedStatistics != null && result.RewardResults.IncrementedStatistics.Count > 0)
+        {
+            gotStats = true;
+
+            var count = 0;
+			foreach(var stat in result.RewardResults.IncrementedStatistics)
+			{
+				if( gotItems || gotVC || count > 0)
+				{
+					output += "; ";
+				}
+
+				output += string.Format(" Your \"{0}\" increased by {1}", stat.Key, stat.Value);
+
+				count++;
+			}
+        }
+
+        if(gotItems)
+        {
+        	output += ".\n Click the check mark to view your new items.";
+        }
 
 		if(OnAdRewarded != null)
 		{
 			OnAdRewarded(result);
 		}
+
+       	DialogCanvasController.RequestConfirmationPrompt("You were granted a gift!", output, (bool response) => { 
+
+       		
+   		if(response && gotItems)
+   		{
+   			DialogCanvasController.RequestItemViewer(itemGifts, true);
+   		}
+
+   	 	// if true then show items
+   	 	// false, item pop-up can be seen later...
+   	 	// cloud script to mark gifts as new / seen
+
+
+       	return; });
+
+
 	}
 	#endregion
 
@@ -126,6 +209,7 @@ public class SupersonicEvents : MonoBehaviour
 	public void RewardedVideoInitSuccessEvent ()
 	{
 		Debug.Log ("RewardedVideoInitSuccessEvent");
+		//PF_Advertising.ReportAdActivity(new ReportAdActivityRequest(){ PlacementId = SupersonicEvents.queuedAd.PlacementId, RewardId = SupersonicEvents.queuedAd.RewardId, Activity = AdActivity }, null, PF_Bridge.PlayFabErrorCallback);
 	}
 
 	//Invoked when RewardedVideo initialization process has failed.
@@ -134,6 +218,7 @@ public class SupersonicEvents : MonoBehaviour
 	{
     
 		Debug.Log ("Init rewarded video error ");
+		//PF_Advertising.ReportAdActivity(new ReportAdActivityRequest(){ PlacementId = SupersonicEvents.queuedAd.PlacementId, RewardId = SupersonicEvents.queuedAd.RewardId, Activity = AdAc }, null, PF_Bridge.PlayFabErrorCallback);
     
 	}
 
@@ -143,6 +228,7 @@ public class SupersonicEvents : MonoBehaviour
 	public void RewardedVideoAdOpenedEvent ()
 	{
 		Debug.Log ("RewardedVideoAdOpenedEvent");
+		PF_Advertising.ReportAdActivity(new ReportAdActivityRequest(){ PlacementId = SupersonicEvents.queuedAd.PlacementId, RewardId = SupersonicEvents.queuedAd.RewardId, Activity = AdActivity.Opened }, null, PF_Bridge.PlayFabErrorCallback);
 	}
 
 	//Invoked when the RewardedVideo ad view is about to be closed.
@@ -150,6 +236,8 @@ public class SupersonicEvents : MonoBehaviour
 	public void RewardedVideoAdClosedEvent ()
 	{
 		Debug.Log ("RewardedVideoAdClosedEvent");
+		PF_Advertising.ReportAdActivity(new ReportAdActivityRequest(){ PlacementId = SupersonicEvents.queuedAd.PlacementId, RewardId = SupersonicEvents.queuedAd.RewardId,Activity = AdActivity.Closed }, null, PF_Bridge.PlayFabErrorCallback);
+		queuedAd = null;
 	}
 
 	//Invoked when there is a change in the ad availability status.
@@ -166,12 +254,16 @@ public class SupersonicEvents : MonoBehaviour
 	public void VideoStartEvent ()
 	{
 		Debug.Log ("VideoStartEvent");
+		PF_Advertising.ReportAdActivity(new ReportAdActivityRequest(){ PlacementId = SupersonicEvents.queuedAd.PlacementId, RewardId = SupersonicEvents.queuedAd.RewardId, Activity = AdActivity.Start }, null, PF_Bridge.PlayFabErrorCallback);
+
 	}
 
 	//Invoked when the video ad finishes playing.
 	public void VideoEndEvent ()
 	{
 		Debug.Log ("VideoEndEvent");
+		PF_Advertising.ReportAdActivity(new ReportAdActivityRequest(){ PlacementId = SupersonicEvents.queuedAd.PlacementId, RewardId = SupersonicEvents.queuedAd.RewardId, Activity = AdActivity.End}, null, PF_Bridge.PlayFabErrorCallback);
+
 	}
 
 	//Invoked when the user completed the video and should be rewarded.
@@ -190,7 +282,6 @@ public class SupersonicEvents : MonoBehaviour
 
 		Debug.Log (string.Format("PlacementId:{0} -- RewardId:{1}", queuedAd.PlacementId, queuedAd.RewardId));
 		RouteActivityToPlayFab(queuedAd.PlacementId, queuedAd.RewardId);
-		queuedAd = null;
 	
 	}
 

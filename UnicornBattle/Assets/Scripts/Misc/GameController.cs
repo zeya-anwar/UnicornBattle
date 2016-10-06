@@ -68,7 +68,7 @@ public class GameController : Singleton<GameController> {
 			Debug.Log("application just got paused");
 
 			this.pausedOnScene = SceneManager.GetActiveScene().name;
-			//Supersonic.Agent.onPause ();
+			Supersonic.Agent.onPause ();
 		}
 		else
 		{
@@ -79,7 +79,7 @@ public class GameController : Singleton<GameController> {
 			{
 				SceneController.Instance.RequestSceneChange((SceneController.GameScenes)System.Enum.Parse(typeof(SceneController.GameScenes), this.pausedOnScene));
 			}
-			//Supersonic.Agent.onResume ();
+			Supersonic.Agent.onResume ();
 			
 		}
 		
@@ -91,6 +91,7 @@ public class GameController : Singleton<GameController> {
 			// application just got paused
 			Debug.Log("application just lost focus");
 			this.lostFocusedOnScene = SceneManager.GetActiveScene().name;
+			Supersonic.Agent.onPause ();
 		}
 		else if(status == true)
 		{
@@ -101,6 +102,7 @@ public class GameController : Singleton<GameController> {
 			{
 				SceneController.Instance.RequestSceneChange((SceneController.GameScenes)System.Enum.Parse(typeof(SceneController.GameScenes), this.lostFocusedOnScene));
 			}
+			Supersonic.Agent.onResume ();
 		}
 	}
 		

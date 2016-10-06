@@ -55,13 +55,26 @@ public class LeaderboardPaneController : MonoBehaviour {
 //		this.StatisticFilter.GetComponentInChildren<Text>().text = this.StandAloneStatistics[0];
 //		
 		// this is all fairly hacky, and should be smoothed over.
-		UpdateTop10LB(this.PlayerLevelStats[0]);
-		UpdateFriendsLB(this.PlayerLevelStats[0]);
-		
+
+
+		var adStat = this.PlayerLevelStats.Find((val) => { return val == "Total_AdsWatched"; });
+
+		if(!string.IsNullOrEmpty(adStat))
+		{
+			UpdateTop10LB(adStat);
+			UpdateFriendsLB(adStat);
+
+			this.StatisticFilter.GetComponentInChildren<Text>().text = adStat;
+		}
+		else
+		{
+			UpdateTop10LB(this.PlayerLevelStats[0]);
+			UpdateFriendsLB(this.PlayerLevelStats[0]);
+
+			this.StatisticFilter.GetComponentInChildren<Text>().text = this.PlayerLevelStats[0];
+		}
 		UpdateFriendList();
-		//UpdateMyRank(this.PlayerLevelStats[0]);
-		
-		this.StatisticFilter.GetComponentInChildren<Text>().text = this.PlayerLevelStats[0];
+
 	}
 	
 
